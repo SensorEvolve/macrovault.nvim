@@ -1,23 +1,24 @@
-##MacroVault.nvim
+# MacroVault.nvim
+
 MacroVault is a Neovim plugin that provides a persistent, quickly accessible list of your custom macros. Define up to 100 macros and execute them with ease via a floating window selector.
 
-#Features
-Persistent Macro Storage: Define your macros directly in your Neovim configuration.
+## Features
 
-Quick Access: Launch a floating window to view and select your macros.
+* **Persistent Macro Storage:** Define your macros directly in your Neovim configuration.
+* **Quick Access:** Launch a floating window to view and select your macros.
+* **Command Line Preview:** Selected macros are placed on the command line for review before execution.
+* **Modal Interface:** Focused interaction within the macro selection window.
+* **Easy Navigation:** Use `j/k`, `gg/G`, `PageUp/PageDown` to navigate the macro list.
 
-Command Line Preview: Selected macros are placed on the command line for review before execution.
+## Installation
 
-Modal Interface: Focused interaction within the macro selection window.
-
-Easy Navigation: Use j/k, gg/G, PageUp/PageDown to navigate the macro list.
-
-#Installation
 Requires Neovim 0.7+ (or the version appropriate for the API usage).
 
-#LazyVim
+### LazyVim
+
 Add the following to your LazyVim plugin configuration:
 
+```lua
 -- lua/plugins/macrovault.lua (or your preferred file)
 return {
   {
@@ -26,11 +27,12 @@ return {
     -- No explicit config function needed here if using the default setup
   }
 }
-
-#Configuration
+Configuration
 Macros are defined within the plugin/macrovault.lua file of this plugin. To customize your macros, you will need to fork the plugin or manage your macro definitions in your local clone.
 
 The macro definitions look like this (inside plugin/macrovault.lua):
+
+Lua
 
 local my_defined_macros = {
     [1] = [[ddOhello world<Esc>]],
@@ -39,57 +41,55 @@ local my_defined_macros = {
     -- ... up to 100 macros
     [100] = [[echo 'Hello from MacroVault!']],
 }
-
 Note on Macro Syntax:
 
 Use Lua's long string brackets [[...]] to define macros, especially if they contain special characters like quotes or backslashes.
-
 Macros are executed as if typed in Normal mode after being prefixed with : on the command line.
-
 For Normal mode command sequences: [[ddOtext<Esc>]]
-
 For Ex commands: [[wqa]] (the plugin will prefix it with :)
-
 For direct text insertion: [[iYour text here<Esc>]]
 
 Usage
 Open MacroVault:
 Run the command:
 
-:ShowMacroVault
+Vim Script
 
+:ShowMacroVault
 You can map this command to a keybinding in your Neovim configuration for faster access.
 
 Navigate:
 
 j or <Down>: Move down.
-
 k or <Up>: Move up.
-
 gg: Go to the top.
-
 G: Go to the bottom.
-
 <PageDown>: Page down.
-
 <PageUp>: Page up.
-
 Select a Macro:
 
 Press <Enter> on the desired macro.
-
 Execute:
 
 The selected macro (prefixed with :) will appear on your Neovim command line.
-
 Review it, then press <Enter> to execute it.
-
 Close:
 
 Press q or <Esc> to close the MacroVault window without selecting a macro.
-
 Contributing
 Contributions, issues, and feature requests are welcome. Please feel free to check the issues page. (Update with your actual issues link).
 
 License
 This project is licensed under the Apache License 2.0. (Ensure you have a LICENSE.md file in your repository containing the full text of the Apache License 2.0).
+
+
+**How to use this:**
+1.  **Select all the text** starting from the line ` # MacroVault.nvim ` all the way down to the line ` ...Apache License 2.0). `. Make sure you get everything *between* the ` ```markdown ` and the final ` ``` if you are copying from my previous message, or just the content itself if copying from this message's code block.
+2.  **Copy it.**
+3.  Open your `README.md` file in a **plain text editor** (Neovim, VS Code, Notepad++, etc.).
+4.  Delete any existing content in `README.md`.
+5.  **Paste the copied text.** You should see all the raw characters like `#`, `*`, ` ```lua `, etc.
+6.  Save the file.
+7.  Commit and push to GitHub.
+
+When GitHub processes this raw text, it will render it into a formatted page.
