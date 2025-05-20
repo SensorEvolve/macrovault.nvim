@@ -17,7 +17,6 @@ local my_defined_macros = {
 	[1] = "0f's{`^[;s`}^[",
 	[2] = "%s/^w/U&/", -- Uppercase the first word
 	[3] = "g/^s*$/d", -- Delete empty lines
-	[4] = "%s/(l)(\u)/\1_l\2/g", -- CamelCase to snake_case
 	[5] = "%s/<foo>/bar/gc", -- Replace "foo" with "bar"
 }
 
