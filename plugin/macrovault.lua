@@ -14,16 +14,11 @@ local ui = require("macrovault.ui")
 -- Define your macros here (or load them from a config module if you prefer)
 -- This is the same table you had in your LazyVim loader.
 local my_defined_macros = {
-	[1] = "ddOhello world from slot 1!<Esc>",
-	[2] = "iSome text inserted from slot 2.<Esc>",
-	[3] = nil,
-	[4] = "A-- Appended from slot 4<Esc>",
-	[5] = "vipJ",
-	[6] = "gg=G",
-	[7] = "ciwNewWord<Esc>",
-	[8] = "iHello World<Esc>",
-	[9] = "iCarlosJuan<Esc>",
-	[100] = "echo 'Hello from MacroVault slot 100!'",
+	[1] = "0f's{`^[;s`}^[",
+	[2] = "%s/^w/U&/", -- Uppercase the first word
+	[3] = "g/^s*$/d", -- Delete empty lines
+	[4] = "%s/(l)(\u)/\1_l\2/g", -- CamelCase to snake_case
+	[5] = "%s/<foo>/bar/gc", -- Replace "foo" with "bar"
 }
 
 -- Initialize the core module with your defined macros
