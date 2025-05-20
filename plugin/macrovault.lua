@@ -1,4 +1,4 @@
--- macrovault.nvim/plugin/macrovault.lua
+-- File: macrovault.nvim/plugin/macrovault.lua
 
 -- Don't run if already loaded or if disabled
 if vim.g.loaded_macrovault then
@@ -7,17 +7,23 @@ end
 vim.g.loaded_macrovault = 1
 
 -- Require your core and ui modules
--- The require path starts from 'lua/', so 'macrovault.core' and 'macrovault.ui'
 local core = require("macrovault.core")
 local ui = require("macrovault.ui")
 
--- Define your macros here (or load them from a config module if you prefer)
--- This is the same table you had in your LazyVim loader.
+-- Define your macros here using long brackets [[...]] for robustness
 local my_defined_macros = {
-	[1] = "0f's{`^[;s`}^[",
-	[2] = "%s/^w/U&/", -- Uppercase the first word
-	[3] = "g/^s*$/d", -- Delete empty lines
-	[5] = "%s/<foo>/bar/gc", -- Replace "foo" with "bar"
+	[1] = [[0f"s{`^[;s`}^[]], -- Now correctly handles the inner quote and special chars
+	[2] = [[%s/^w/U&/]], -- Uppercase the first word
+	[3] = [[g/^s*$/d]], -- Delete empty lines
+	[4] = [[A-- Appended from slot 4<Esc>]], -- Example from previous version
+	[5] = [[%s/<foo>/bar/gc]], -- Replace "foo" with "bar"
+	[6] = [[gg=G]], -- Example from previous version
+	[7] = [[ciwNewWord<Esc>]], -- Example from previous version
+	[8] = [[iHello World<Esc>]], -- Example from previous version
+	[9] = [[iCarlosJuan<Esc>]], -- Example from previous version
+	-- Example of a macro that itself uses double quotes:
+	[10] = [[echo "Hello from MacroVault!"<CR>]],
+	[100] = [[echo 'Hello from MacroVault slot 100!']], -- Using single quotes inside
 }
 
 -- Initialize the core module with your defined macros
@@ -37,4 +43,4 @@ vim.api.nvim_create_user_command("ShowMacroVault", function()
 	end
 end, { desc = "Show the MacroVault list", nargs = 0 })
 
--- vim.notify("MacroVault plugin loaded from Git repo! Use :ShowMacroVault", vim.log.levels.INFO) -- Optional: for testing
+-- No startup notification by default
