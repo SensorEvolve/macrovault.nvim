@@ -1,6 +1,8 @@
 -- SensorEvolve MacroVault UI
+-- File: lua/macrovault/ui.lua
+-- This file should be in your Git repository at macrovault.nvim/lua/macrovault/ui.lua
 
-local core = require("macrovaultcore.lua")
+local core = require("macrovault.core") -- CORRECTED require for core
 local api = vim.api
 local fn = vim.fn
 
@@ -104,81 +106,82 @@ function M.show_macro_list()
 
 	local map_opts = { noremap = true, silent = true }
 
+	-- CORRECTED require paths for the module this file itself defines ('macrovault.ui')
 	api.nvim_buf_set_keymap(
 		floating_win.bufnr,
 		"n",
 		"q",
-		"<Cmd>lua require('persistent_macros_code.ui')._close_window_callback()<CR>",
+		"<Cmd>lua require('macrovault.ui')._close_window_callback()<CR>",
 		map_opts
 	)
 	api.nvim_buf_set_keymap(
 		floating_win.bufnr,
 		"n",
 		"<Esc>",
-		"<Cmd>lua require('persistent_macros_code.ui')._close_window_callback()<CR>",
+		"<Cmd>lua require('macrovault.ui')._close_window_callback()<CR>",
 		map_opts
 	)
 	api.nvim_buf_set_keymap(
 		floating_win.bufnr,
 		"n",
 		"<CR>",
-		"<Cmd>lua require('persistent_macros_code.ui')._select_callback()<CR>",
+		"<Cmd>lua require('macrovault.ui')._select_callback()<CR>",
 		map_opts
 	)
 	api.nvim_buf_set_keymap(
 		floating_win.bufnr,
 		"n",
 		"j",
-		"<Cmd>lua require('persistent_macros_code.ui')._navigate('down')<CR>",
+		"<Cmd>lua require('macrovault.ui')._navigate('down')<CR>",
 		map_opts
 	)
 	api.nvim_buf_set_keymap(
 		floating_win.bufnr,
 		"n",
 		"<Down>",
-		"<Cmd>lua require('persistent_macros_code.ui')._navigate('down')<CR>",
+		"<Cmd>lua require('macrovault.ui')._navigate('down')<CR>",
 		map_opts
 	)
 	api.nvim_buf_set_keymap(
 		floating_win.bufnr,
 		"n",
 		"k",
-		"<Cmd>lua require('persistent_macros_code.ui')._navigate('up')<CR>",
+		"<Cmd>lua require('macrovault.ui')._navigate('up')<CR>",
 		map_opts
 	)
 	api.nvim_buf_set_keymap(
 		floating_win.bufnr,
 		"n",
 		"<Up>",
-		"<Cmd>lua require('persistent_macros_code.ui')._navigate('up')<CR>",
+		"<Cmd>lua require('macrovault.ui')._navigate('up')<CR>",
 		map_opts
 	)
 	api.nvim_buf_set_keymap(
 		floating_win.bufnr,
 		"n",
 		"<PageDown>",
-		"<Cmd>lua require('persistent_macros_code.ui')._navigate('pagedown')<CR>",
+		"<Cmd>lua require('macrovault.ui')._navigate('pagedown')<CR>",
 		map_opts
 	)
 	api.nvim_buf_set_keymap(
 		floating_win.bufnr,
 		"n",
 		"<PageUp>",
-		"<Cmd>lua require('persistent_macros_code.ui')._navigate('pageup')<CR>",
+		"<Cmd>lua require('macrovault.ui')._navigate('pageup')<CR>",
 		map_opts
 	)
 	api.nvim_buf_set_keymap(
 		floating_win.bufnr,
 		"n",
 		"gg",
-		"<Cmd>lua require('persistent_macros_code.ui')._navigate('top')<CR>",
+		"<Cmd>lua require('macrovault.ui')._navigate('top')<CR>",
 		map_opts
 	)
 	api.nvim_buf_set_keymap(
 		floating_win.bufnr,
 		"n",
 		"G",
-		"<Cmd>lua require('persistent_macros_code.ui')._navigate('bottom')<CR>",
+		"<Cmd>lua require('macrovault.ui')._navigate('bottom')<CR>",
 		map_opts
 	)
 
