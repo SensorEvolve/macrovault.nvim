@@ -17,10 +17,10 @@ local my_defined_macros = {
 	[3] = [[g/^s*$/d]], -- Delete empty lines
 	[4] = [[%s//g]], -- Example from previous version
 	[5] = [[%s/<foo>/bar/gc]], -- Replace "foo" with "bar"
-	[6] = [[gg=G]], -- Example from previous version
-	[7] = [[ciwNewWord<Esc>]], -- Example from previous version
-	[8] = [[iHello World<Esc>]], -- Example from previous version
-	[9] = [[iCarlosJuan<Esc>]], -- Example from previous version
+	[6] = [[%s/\([^;]\)$/\1;/]], -- Add a semicolon at the end of each line
+	[7] = [[%!column -t -s ',']], -- Format CSV
+	[8] = [[%s/^\(.*\)\(\n\1\)\+$/\1/]], -- Delete duplicate lines
+	[9] = [[g/^$/d]], -- Delete empty lines
 	-- Example of a macro that itself uses double quotes:
 	[10] = [[echo "Hello from MacroVault!"<CR>]],
 	[100] = [[echo 'Hello from MacroVault slot 100!']], -- Using single quotes inside
