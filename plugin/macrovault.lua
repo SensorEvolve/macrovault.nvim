@@ -15,7 +15,7 @@ local my_defined_macros = {
 	[1] = [[0f"s{`^[;s`}^[]], -- Now correctly handles the inner quote and special chars
 	[2] = [[%s/^w/U&/]], -- Uppercase the first word
 	[3] = [[g/^s*$/d]], -- Delete empty lines
-	[4] = [[A-- Appended from slot 4<Esc>]], -- Example from previous version
+	[4] = [[%s//g]], -- Example from previous version
 	[5] = [[%s/<foo>/bar/gc]], -- Replace "foo" with "bar"
 	[6] = [[gg=G]], -- Example from previous version
 	[7] = [[ciwNewWord<Esc>]], -- Example from previous version
