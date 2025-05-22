@@ -12,7 +12,7 @@ local ui = require("macrovault.ui")
 
 -- Define your macros here using long brackets [[...]] for robustness
 local my_defined_macros = {
-	[1] = [[!pandoc .md -o .pdf]], -- Convert Markdown to PDF
+	[1] = [[!pandoc .md --pdf-engine=xelatex -o .pdf]], -- Convert Markdown to PDF, fill in before .md and .pdf
 	[2] = [[%s/^w/U&/]], -- Uppercase the first word
 	[3] = [[g/^s*$/d]], -- Delete empty lines
 	[4] = [[%s//g]], -- Example from previous version
