@@ -12,11 +12,11 @@ local ui = require("macrovault.ui")
 
 -- Define your macros here using long brackets [[...]] for robustness
 local my_defined_macros = {
-	[1] = [[!pandoc filename.md -o filename.pdf]], -- Convert Markdown to PDF
+	[1] = [[!pandoc .md -o .pdf]], -- Convert Markdown to PDF
 	[2] = [[%s/^w/U&/]], -- Uppercase the first word
 	[3] = [[g/^s*$/d]], -- Delete empty lines
 	[4] = [[%s//g]], -- Example from previous version
-	[5] = [[%s/<foo>/bar/gc]], -- Replace "foo" with "bar"
+	[5] = [[%s/<foo>//gc]], -- Replace "foo" with "bar"
 	[6] = [[%s/\([^;]\)$/\1;/]], -- Add a semicolon at the end of each line
 	[7] = [[%!column -t -s ',']], -- Format CSV
 	[8] = [[%s/^\(.*\)\(\n\1\)\+$/\1/]], -- Delete duplicate lines
