@@ -12,7 +12,7 @@ local ui = require("macrovault.ui")
 
 -- Define your macros here using long brackets [[...]] for robustness
 local my_defined_macros = {
-	[1] = [[0f"s{`^[;s`}^[]], -- Now correctly handles the inner quote and special chars
+	[1] = [[!pandoc filename.md -o filename.pdf]], -- Convert Markdown to PDF
 	[2] = [[%s/^w/U&/]], -- Uppercase the first word
 	[3] = [[g/^s*$/d]], -- Delete empty lines
 	[4] = [[%s//g]], -- Example from previous version
