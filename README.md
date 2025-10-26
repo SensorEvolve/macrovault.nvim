@@ -1,95 +1,253 @@
 # MacroVault.nvim
 
-MacroVault is a Neovim plugin that provides a persistent, quickly accessible list of your custom macros. Define up to 100 macros and execute them with ease via a floating window selector.
+A modern, persistent macro management plugin for Neovim with proper configuration support and disk persistence.
 
 ## Features
 
-* **Persistent Macro Storage:** Define your macros directly in your Neovim configuration.
-* **Quick Access:** Launch a floating window to view and select your macros.
-* **Command Line Preview:** Selected macros are placed on the command line for review before execution.
-* **Modal Interface:** Focused interaction within the macro selection window.
-* **Easy Navigation:** Use `j/k`, `gg/G`, `PageUp/PageDown` to navigate the macro list.
+✨ **Proper Configuration** - Setup via `setup()` function in your Neovim config
+💾 **Disk Persistence** - Macros automatically save to JSON and persist between sessions
+🚀 **Optimized Code** - Clean, efficient implementation
+🎨 **Better UX** - Add/edit macros on the fly with `:MacroVaultAdd` and `:MacroVaultEdit`
+📦 **100 Macro Slots** - Store up to 100 custom macros
+⚡ **Auto-save** - Optional automatic saving after changes
 
 ## Installation
 
-Requires Neovim 0.7+ (or the version appropriate for the API usage).
+Requires Neovim 0.7+
 
-### LazyVim
-
-Add the following to your LazyVim plugin configuration:
+### Using lazy.nvim
 
 ```lua
--- lua/plugins/macrovault.lua (or your preferred file)
+-- lua/plugins/macrovault.lua
 return {
-  {
-    "SensorEvolve/macrovault.nvim", -- Replace with your GitHub username if different
-    lazy = false, -- Or use 'cmd = "ShowMacroVault"' for lazy loading
-    -- No explicit config function needed here if using the default setup
-  }
+  "sensorevolve/macrovault.nvim",
+  config = function()
+    require("macrovault").setup({
+      -- Your configuration here
+      macros = {
+        [1] = [[%s/\s\+$//]],              -- Remove trailing whitespace
+        [2] = [[%s/\r//g]],                 -- Remove Windows line endings
+        [3] = [[gg=G``]],                   -- Reindent entire file
+        [10] = [[wqa]],                     -- Write and quit all
+      },
+      auto_save = true,
+    })
+  end,
+  keys = {
+    { "<leader>mv", "<cmd>MacroVault<cr>", desc = "MacroVault: Show macros" },
+    { "<leader>ma", "<cmd>MacroVaultAdd<cr>", desc = "MacroVault: Add macro" },
+    { "<leader>me", "<cmd>MacroVaultEdit<cr>", desc = "MacroVault: Edit macro" },
+  },
 }
-Configuration
-Macros are defined within the plugin/macrovault.lua file of this plugin. To customize your macros, you will need to fork the plugin or manage your macro definitions in your local clone.
+```
 
-The macro definitions look like this (inside plugin/macrovault.lua):
+### Using packer.nvim
 
-Lua
-
-local my_defined_macros = {
-    [1] = [[ddOhello world<Esc>]],
-    [2] = [[%s/^w/U&/]],         -- Uppercase the first word
-    [3] = [[g/^s*$/d]],         -- Delete empty lines
-    -- ... up to 100 macros
-    [100] = [[echo 'Hello from MacroVault!']],
+```lua
+use {
+  "sensorevolve/macrovault.nvim",
+  config = function()
+    require("macrovault").setup({
+      macros = {
+        [1] = [[your macro here]],
+      },
+    })
+  end
 }
-Note on Macro Syntax:
+```
 
-Use Lua's long string brackets [[...]] to define macros, especially if they contain special characters like quotes or backslashes.
-Macros are executed as if typed in Normal mode after being prefixed with : on the command line.
-For Normal mode command sequences: [[ddOtext<Esc>]]
-For Ex commands: [[wqa]] (the plugin will prefix it with :)
-For direct text insertion: [[iYour text here<Esc>]]
+### Using vim-plug
 
-Usage
-Open MacroVault:
-Run the command:
+```vim
+Plug 'sensorevolve/macrovault.nvim'
 
-Vim Script
+lua << EOF
+require("macrovault").setup({
+  macros = {
+    [1] = [[your macro here]],
+  },
+})
+EOF
+```
 
-:ShowMacroVault
-You can map this command to a keybinding in your Neovim configuration for faster access.
+## Configuration
 
-Navigate:
+```lua
+require("macrovault").setup({
+  -- Storage path (relative to nvim data directory)
+  storage_path = "macrovault-macros.json",
 
-j or <Down>: Move down.
-k or <Up>: Move up.
-gg: Go to the top.
-G: Go to the bottom.
-<PageDown>: Page down.
-<PageUp>: Page up.
-Select a Macro:
+  -- Auto-save macros after changes
+  auto_save = true,
 
-Press <Enter> on the desired macro.
-Execute:
+  -- Maximum number of macros (default 100)
+  max_macros = 100,
 
-The selected macro (prefixed with :) will appear on your Neovim command line.
-Review it, then press <Enter> to execute it.
-Close:
+  -- Initial macros (only used if no saved macros exist)
+  macros = {
+    [1] = [[your macro here]],
+    [2] = [[another macro]],
+  },
 
-Press q or <Esc> to close the MacroVault window without selecting a macro.
-Contributing
-Contributions, issues, and feature requests are welcome. Please feel free to check the issues page. (Update with your actual issues link).
+  -- UI settings
+  ui = {
+    border = "rounded",       -- Border style
+    max_height = 25,          -- Maximum window height
+    max_width_percent = 0.8,  -- Max width as % of editor
+    title = " MacroVault ",   -- Window title
+  },
+})
+```
 
-License
-This project is licensed under the Apache License 2.0. (Ensure you have a LICENSE.md file in your repository containing the full text of the Apache License 2.0).
+## Commands
 
+| Command | Description |
+|---------|-------------|
+| `:MacroVault` | Show macro list in floating window |
+| `:MacroVaultAdd` | Add a new macro interactively |
+| `:MacroVaultEdit` | Edit an existing macro |
+| `:MacroVaultSave` | Manually save macros to disk |
+| `:MacroVaultReload` | Reload macros from disk |
+| `:MacroVaultPath` | Show storage file path |
 
-**How to use this:**
-1.  **Select all the text** starting from the line ` # MacroVault.nvim ` all the way down to the line ` ...Apache License 2.0). `. Make sure you get everything *between* the ` ```markdown ` and the final ` ``` if you are copying from my previous message, or just the content itself if copying from this message's code block.
-2.  **Copy it.**
-3.  Open your `README.md` file in a **plain text editor** (Neovim, VS Code, Notepad++, etc.).
-4.  Delete any existing content in `README.md`.
-5.  **Paste the copied text.** You should see all the raw characters like `#`, `*`, ` ```lua `, etc.
-6.  Save the file.
-7.  Commit and push to GitHub.
+## Usage
 
-When GitHub processes this raw text, it will render it into a formatted page.
+### Viewing and Executing Macros
+
+1. Run `:MacroVault` (or use your keymap)
+2. Navigate with `j`/`k`, `gg`/`G`, `PageUp`/`PageDown`
+3. Press `Enter` to select a macro (appears on command line for review)
+4. Press `Enter` again to execute, or `Esc` to cancel
+5. Press `q` or `Esc` in the list to close without selecting
+
+### Adding Macros
+
+**Interactively:**
+```vim
+:MacroVaultAdd
+" Enter slot number: 5
+" Enter macro content: :echo "Hello!"
+```
+
+**Programmatically:**
+```lua
+require("macrovault").set_macro(5, ":echo 'Hello!'")
+```
+
+### Editing Macros
+
+**Interactively:**
+```vim
+:MacroVaultEdit
+" Enter slot to edit: 5
+" Modify the pre-filled content
+```
+
+**Programmatically:**
+```lua
+local mv = require("macrovault")
+mv.set_macro(5, "new content")
+mv.clear_macro(10)  -- Clear slot 10
+```
+
+## Macro Syntax
+
+Macros use Lua long string brackets `[[...]]` to safely contain special characters:
+
+```lua
+macros = {
+  -- Normal mode sequence
+  [1] = [[ddONew line here<Esc>]],
+
+  -- Ex command (find/replace)
+  [2] = [[%s/old/new/g]],
+
+  -- Delete empty lines
+  [3] = [[g/^\s*$/d]],
+
+  -- Insert text
+  [4] = [[iYour text<Esc>]],
+
+  -- Multiple commands
+  [5] = [[gg=G:w<CR>]],
+}
+```
+
+## API Reference
+
+```lua
+local mv = require("macrovault")
+
+-- Setup plugin
+mv.setup({ macros = {...}, auto_save = true })
+
+-- UI functions
+mv.show()         -- Show macro list
+mv.add()          -- Add macro interactively
+mv.edit()         -- Edit macro interactively
+
+-- Macro operations
+mv.set_macro(slot, content, save_now)  -- Set macro
+mv.get_macro(slot)                      -- Get macro content
+mv.clear_macro(slot, save_now)          -- Clear macro
+mv.get_all()                            -- Get all macros
+mv.count()                              -- Get macro count
+
+-- Storage operations
+mv.save()          -- Save to disk
+mv.reload()        -- Reload from disk
+mv.storage_path()  -- Get storage file path
+```
+
+## Storage Location
+
+Macros are saved to: `{nvim-data-dir}/macrovault-macros.json`
+
+To find your data directory:
+```vim
+:echo stdpath('data')
+```
+
+**Default locations:**
+- Windows: `C:\Users\{user}\AppData\Local\nvim-data\`
+- Linux: `~/.local/share/nvim/`
+- macOS: `~/.local/share/nvim/`
+
+## Example Macros
+
+```lua
+require("macrovault").setup({
+  macros = {
+    -- Text cleanup
+    [1] = [[%s/\s\+$//]],              -- Remove trailing whitespace
+    [2] = [[%s/\r//g]],                 -- Remove Windows line endings
+    [3] = [[gg=G``]],                   -- Reindent file
+
+    -- Navigation
+    [10] = [[ggVG]],                    -- Select all
+    [11] = [[gg]],                      -- Jump to top
+    [12] = [[G]],                       -- Jump to bottom
+
+    -- File operations
+    [20] = [[wa]],                      -- Write all
+    [21] = [[wqa]],                     -- Write and quit all
+    [22] = [[qa!]],                     -- Quit all without saving
+
+    -- Custom commands
+    [50] = [[!pandoc % -o %:r.pdf]],   -- Markdown to PDF
+    [51] = [[!prettier --write %]],     -- Format with Prettier
+  },
+})
+```
+
+## Contributing
+
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/sensorevolve/macrovault.nvim/issues).
+
+## License
+
+This project is licensed under the Apache License 2.0.
+
+## Credits
+
+Created by [SensorEvolve](https://github.com/sensorevolve)

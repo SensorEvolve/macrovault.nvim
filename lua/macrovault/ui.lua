@@ -1,260 +1,214 @@
--- SensorEvolve MacroVault UI
--- File: lua/macrovault/ui.lua
--- This file should be in your Git repository at macrovault.nvim/lua/macrovault/ui.lua
-
-local core = require("macrovault.core") -- CORRECTED require for core
-local api = vim.api
-local fn = vim.fn
-
+-- UI module for MacroVault
 local M = {}
 
-local floating_win = {
-	bufnr = nil,
-	win_id = nil,
-	original_win = nil,
-	non_empty_macros_map = {},
+-- Window state
+local state = {
+  buf = nil,
+  win = nil,
+  macro_map = {}, -- Maps display line to macro slot
 }
 
-local function close_macro_window()
-	if floating_win.win_id and api.nvim_win_is_valid(floating_win.win_id) then
-		api.nvim_win_close(floating_win.win_id, true)
-	end
-	if floating_win.bufnr and api.nvim_buf_is_valid(floating_win.bufnr) then
-		if api.nvim_get_option_value("modifiable", { buf = floating_win.bufnr }) == false then
-			api.nvim_set_option_value("modifiable", true, { buf = floating_win.bufnr })
-		end
-		api.nvim_buf_delete(floating_win.bufnr, { force = true })
-	end
-	floating_win.bufnr = nil
-	floating_win.win_id = nil
-	floating_win.non_empty_macros_map = {}
+-- Close the macro window
+local function close_window()
+  if state.win and vim.api.nvim_win_is_valid(state.win) then
+    vim.api.nvim_win_close(state.win, true)
+  end
+
+  if state.buf and vim.api.nvim_buf_is_valid(state.buf) then
+    vim.api.nvim_buf_delete(state.buf, { force = true })
+  end
+
+  state.buf = nil
+  state.win = nil
+  state.macro_map = {}
 end
 
-function M.show_macro_list()
-	if floating_win.win_id and api.nvim_win_is_valid(floating_win.win_id) then
-		api.nvim_set_current_win(floating_win.win_id)
-		return
-	end
+-- Execute selected macro
+local function execute_macro()
+  if not state.win or not vim.api.nvim_win_is_valid(state.win) then
+    return
+  end
 
-	floating_win.original_win = api.nvim_get_current_win()
+  local cursor = vim.api.nvim_win_get_cursor(state.win)
+  local line_num = cursor[1]
+  local slot = state.macro_map[line_num]
 
-	local display_lines = {}
-	floating_win.non_empty_macros_map = {}
-	local display_line_idx = 0
+  if not slot then
+    vim.notify("MacroVault: No macro at this line", vim.log.levels.WARN)
+    return
+  end
 
-	for i = 1, core.MAX_MACROS do
-		local macro = core.get_macro(i)
-		if macro and macro ~= "" then
-			display_line_idx = display_line_idx + 1
-			table.insert(display_lines, string.format("%3d: %s", i, macro))
-			floating_win.non_empty_macros_map[display_line_idx] = i
-		end
-	end
+  local core = require("macrovault.core")
+  local macro = core.get_macro(slot)
 
-	if #display_lines == 0 then
-		vim.notify("MacroVault: No macros defined or all are empty.", vim.log.levels.INFO)
-		return
-	end
+  if not macro then
+    vim.notify("MacroVault: Macro slot " .. slot .. " is empty", vim.log.levels.WARN)
+    return
+  end
 
-	floating_win.bufnr = api.nvim_create_buf(false, true)
-	api.nvim_buf_set_option(floating_win.bufnr, "buftype", "nofile")
-	api.nvim_buf_set_option(floating_win.bufnr, "bufhidden", "wipe")
-	api.nvim_buf_set_option(floating_win.bufnr, "swapfile", false)
+  close_window()
 
-	api.nvim_buf_set_lines(floating_win.bufnr, 0, -1, false, display_lines)
-	api.nvim_buf_set_option(floating_win.bufnr, "modifiable", false)
-
-	local width = fn.float2nr(fn.winwidth(0) * 0.8)
-	local max_macro_len = 0
-	for _, line in ipairs(display_lines) do
-		if fn.strwidth(line) > max_macro_len then
-			max_macro_len = fn.strwidth(line)
-		end
-	end
-	width = math.min(width, max_macro_len + 6)
-	width = math.max(width, 50)
-
-	local height = math.min(#display_lines, fn.float2nr(fn.winheight(0) * 0.7), 25)
-
-	local win_config = {
-		relative = "editor",
-		width = width,
-		height = height,
-		col = fn.float2nr((fn.winwidth(0) - width) / 2),
-		row = fn.float2nr((fn.winheight(0) - height) / 2),
-		anchor = "NW",
-		style = "minimal",
-		border = "rounded",
-		title = "MacroVault (Select Macro)",
-		title_pos = "center",
-		zindex = 100,
-	}
-
-	floating_win.win_id = api.nvim_open_win(floating_win.bufnr, true, win_config)
-	api.nvim_win_set_option(
-		floating_win.win_id,
-		"winhl",
-		"Normal:NormalFloat,FloatBorder:FloatBorder,CursorLine:Visual"
-	)
-	api.nvim_win_set_option(floating_win.win_id, "cursorline", true)
-	api.nvim_win_set_option(floating_win.win_id, "number", false)
-	api.nvim_win_set_option(floating_win.win_id, "relativenumber", false)
-
-	if #display_lines > 0 then
-		api.nvim_win_set_cursor(floating_win.win_id, { 1, 0 })
-	end
-
-	local map_opts = { noremap = true, silent = true }
-
-	-- CORRECTED require paths for the module this file itself defines ('macrovault.ui')
-	api.nvim_buf_set_keymap(
-		floating_win.bufnr,
-		"n",
-		"q",
-		"<Cmd>lua require('macrovault.ui')._close_window_callback()<CR>",
-		map_opts
-	)
-	api.nvim_buf_set_keymap(
-		floating_win.bufnr,
-		"n",
-		"<Esc>",
-		"<Cmd>lua require('macrovault.ui')._close_window_callback()<CR>",
-		map_opts
-	)
-	api.nvim_buf_set_keymap(
-		floating_win.bufnr,
-		"n",
-		"<CR>",
-		"<Cmd>lua require('macrovault.ui')._select_callback()<CR>",
-		map_opts
-	)
-	api.nvim_buf_set_keymap(
-		floating_win.bufnr,
-		"n",
-		"j",
-		"<Cmd>lua require('macrovault.ui')._navigate('down')<CR>",
-		map_opts
-	)
-	api.nvim_buf_set_keymap(
-		floating_win.bufnr,
-		"n",
-		"<Down>",
-		"<Cmd>lua require('macrovault.ui')._navigate('down')<CR>",
-		map_opts
-	)
-	api.nvim_buf_set_keymap(
-		floating_win.bufnr,
-		"n",
-		"k",
-		"<Cmd>lua require('macrovault.ui')._navigate('up')<CR>",
-		map_opts
-	)
-	api.nvim_buf_set_keymap(
-		floating_win.bufnr,
-		"n",
-		"<Up>",
-		"<Cmd>lua require('macrovault.ui')._navigate('up')<CR>",
-		map_opts
-	)
-	api.nvim_buf_set_keymap(
-		floating_win.bufnr,
-		"n",
-		"<PageDown>",
-		"<Cmd>lua require('macrovault.ui')._navigate('pagedown')<CR>",
-		map_opts
-	)
-	api.nvim_buf_set_keymap(
-		floating_win.bufnr,
-		"n",
-		"<PageUp>",
-		"<Cmd>lua require('macrovault.ui')._navigate('pageup')<CR>",
-		map_opts
-	)
-	api.nvim_buf_set_keymap(
-		floating_win.bufnr,
-		"n",
-		"gg",
-		"<Cmd>lua require('macrovault.ui')._navigate('top')<CR>",
-		map_opts
-	)
-	api.nvim_buf_set_keymap(
-		floating_win.bufnr,
-		"n",
-		"G",
-		"<Cmd>lua require('macrovault.ui')._navigate('bottom')<CR>",
-		map_opts
-	)
-
-	api.nvim_buf_set_keymap(floating_win.bufnr, "n", "<C-h>", "<Nop>", map_opts)
-	api.nvim_buf_set_keymap(floating_win.bufnr, "n", "<C-j>", "<Nop>", map_opts)
-	api.nvim_buf_set_keymap(floating_win.bufnr, "n", "<C-k>", "<Nop>", map_opts)
-	api.nvim_buf_set_keymap(floating_win.bufnr, "n", "<C-l>", "<Nop>", map_opts)
+  -- Place macro on command line for user to review
+  vim.fn.feedkeys(":" .. macro, "n")
 end
 
-function M._close_window_callback()
-	close_macro_window()
+-- Setup keymaps for the floating window
+local function setup_keymaps(bufnr)
+  local opts = { buffer = bufnr, noremap = true, silent = true }
+
+  -- Close window
+  vim.keymap.set("n", "q", close_window, opts)
+  vim.keymap.set("n", "<Esc>", close_window, opts)
+
+  -- Execute macro
+  vim.keymap.set("n", "<CR>", execute_macro, opts)
+
+  -- Navigation
+  vim.keymap.set("n", "j", "j", opts)
+  vim.keymap.set("n", "k", "k", opts)
+  vim.keymap.set("n", "<Down>", "j", opts)
+  vim.keymap.set("n", "<Up>", "k", opts)
+  vim.keymap.set("n", "gg", "gg", opts)
+  vim.keymap.set("n", "G", "G", opts)
+  vim.keymap.set("n", "<PageDown>", "<C-f>", opts)
+  vim.keymap.set("n", "<PageUp>", "<C-b>", opts)
+
+  -- Disable split navigation
+  vim.keymap.set("n", "<C-h>", "<Nop>", opts)
+  vim.keymap.set("n", "<C-j>", "<Nop>", opts)
+  vim.keymap.set("n", "<C-k>", "<Nop>", opts)
+  vim.keymap.set("n", "<C-l>", "<Nop>", opts)
 end
 
-function M._select_callback()
-	if not floating_win.bufnr or not floating_win.win_id or not api.nvim_win_is_valid(floating_win.win_id) then
-		return
-	end
+-- Show the macro list
+function M.show()
+  local core = require("macrovault.core")
+  local config = require("macrovault.config").get()
+  local macros = core.get_non_empty_macros()
 
-	local display_line_num = api.nvim_win_get_cursor(floating_win.win_id)[1]
-	local actual_macro_slot = floating_win.non_empty_macros_map[display_line_num]
+  if #macros == 0 then
+    vim.notify("MacroVault: No macros defined", vim.log.levels.WARN)
+    return
+  end
 
-	if not actual_macro_slot then
-		vim.notify("MacroVault Error: Could not map display line to macro slot.", vim.log.levels.ERROR)
-		close_macro_window()
-		return
-	end
+  -- Build display lines and mapping
+  local lines = {}
+  state.macro_map = {}
 
-	local macro_content = core.get_macro(actual_macro_slot)
-	local original_win_temp = floating_win.original_win
-	close_macro_window()
+  for _, entry in ipairs(macros) do
+    local line = string.format("[%d] %s", entry.slot, entry.content)
+    table.insert(lines, line)
+    state.macro_map[#lines] = entry.slot
+  end
 
-	if macro_content and macro_content ~= "" then
-		if original_win_temp and api.nvim_win_is_valid(original_win_temp) then
-			api.nvim_set_current_win(original_win_temp)
-			fn.setreg('"', ":" .. macro_content)
-			api.nvim_feedkeys(api.nvim_replace_termcodes(':<C-r>"', true, true, true), "n", false)
-			vim.notify(
-				"MacroVault: Macro from slot "
-					.. actual_macro_slot
-					.. " placed on command line. Press Enter to execute.",
-				vim.log.levels.INFO
-			)
-		else
-			vim.notify("MacroVault Error: Original window is no longer valid.", vim.log.levels.ERROR)
-		end
-	elseif macro_content == "" then
-		vim.notify("MacroVault: Selected slot " .. actual_macro_slot .. " is defined but empty.", vim.log.levels.WARN)
-	else
-		vim.notify("MacroVault: Selected slot " .. actual_macro_slot .. " is nil.", vim.log.levels.WARN)
-	end
+  -- Calculate window dimensions (cache line widths)
+  local max_width = 0
+  for _, line in ipairs(lines) do
+    local width = vim.fn.strdisplaywidth(line)
+    if width > max_width then
+      max_width = width
+    end
+  end
+
+  local editor_width = vim.o.columns
+  local editor_height = vim.o.lines
+
+  local win_width = math.min(max_width + 4, math.floor(editor_width * config.ui.max_width_percent))
+  local win_height = math.min(#lines, config.ui.max_height)
+
+  -- Center the window
+  local row = math.floor((editor_height - win_height) / 2)
+  local col = math.floor((editor_width - win_width) / 2)
+
+  -- Create buffer
+  state.buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
+  vim.api.nvim_buf_set_option(state.buf, "modifiable", false)
+  vim.api.nvim_buf_set_option(state.buf, "bufhidden", "wipe")
+
+  -- Create floating window
+  local win_config = {
+    relative = "editor",
+    width = win_width,
+    height = win_height,
+    row = row,
+    col = col,
+    style = "minimal",
+    border = config.ui.border,
+    title = config.ui.title,
+    title_pos = "center",
+  }
+
+  state.win = vim.api.nvim_open_win(state.buf, true, win_config)
+
+  -- Setup keymaps
+  setup_keymaps(state.buf)
+
+  -- Set cursor to first line
+  vim.api.nvim_win_set_cursor(state.win, { 1, 0 })
 end
 
-function M._navigate(direction)
-	if not floating_win.win_id or not api.nvim_win_is_valid(floating_win.win_id) then
-		return
-	end
-	local current_line = api.nvim_win_get_cursor(floating_win.win_id)[1]
-	local total_lines = api.nvim_buf_line_count(floating_win.bufnr)
-	local page_size = math.max(1, api.nvim_win_get_height(floating_win.win_id) - 2)
-	if direction == "down" then
-		current_line = math.min(current_line + 1, total_lines)
-	elseif direction == "up" then
-		current_line = math.max(current_line - 1, 1)
-	elseif direction == "pagedown" then
-		current_line = math.min(current_line + page_size, total_lines)
-	elseif direction == "pageup" then
-		current_line = math.max(current_line - page_size, 1)
-	elseif direction == "top" then
-		current_line = 1
-	elseif direction == "bottom" then
-		current_line = total_lines
-	end
-	api.nvim_win_set_cursor(floating_win.win_id, { current_line, 0 })
+-- Prompt user to add a new macro
+function M.add_macro()
+  local core = require("macrovault.core")
+
+  vim.ui.input({ prompt = "Macro slot (1-100): " }, function(slot_input)
+    if not slot_input then
+      return
+    end
+
+    local slot = tonumber(slot_input)
+    if not slot or slot < 1 or slot > 100 then
+      vim.notify("MacroVault: Invalid slot number", vim.log.levels.ERROR)
+      return
+    end
+
+    vim.ui.input({ prompt = "Macro content: " }, function(content)
+      if not content or content == "" then
+        return
+      end
+
+      if core.set_macro(slot, content) then
+        vim.notify(string.format("MacroVault: Added macro to slot %d", slot), vim.log.levels.INFO)
+      end
+    end)
+  end)
+end
+
+-- Edit an existing macro
+function M.edit_macro()
+  local core = require("macrovault.core")
+
+  vim.ui.input({ prompt = "Macro slot to edit (1-100): " }, function(slot_input)
+    if not slot_input then
+      return
+    end
+
+    local slot = tonumber(slot_input)
+    if not slot or slot < 1 or slot > 100 then
+      vim.notify("MacroVault: Invalid slot number", vim.log.levels.ERROR)
+      return
+    end
+
+    local current = core.get_macro(slot) or ""
+
+    vim.ui.input({ prompt = "Macro content: ", default = current }, function(content)
+      if not content then
+        return
+      end
+
+      if content == "" then
+        -- Clear the slot
+        if core.clear_macro(slot) then
+          vim.notify(string.format("MacroVault: Cleared slot %d", slot), vim.log.levels.INFO)
+        end
+      else
+        if core.set_macro(slot, content) then
+          vim.notify(string.format("MacroVault: Updated slot %d", slot), vim.log.levels.INFO)
+        end
+      end
+    end)
+  end)
 end
 
 return M
