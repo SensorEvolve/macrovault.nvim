@@ -23,12 +23,25 @@ return {
   "sensorevolve/macrovault.nvim",
   config = function()
     require("macrovault").setup({
-      -- Your configuration here
+      -- 10 essential macros included by default
       macros = {
-        [1] = [[%s/\s\+$//]],              -- Remove trailing whitespace
-        [2] = [[%s/\r//g]],                 -- Remove Windows line endings
-        [3] = [[gg=G``]],                   -- Reindent entire file
-        [10] = [[wqa]],                     -- Write and quit all
+        -- Text Cleanup & Formatting
+        [1] = [[%s/\s\+$//]],                     -- Remove trailing whitespace
+        [2] = [[g/^\s*$/d]],                      -- Delete empty/whitespace-only lines
+        [3] = [[gg=G``]],                         -- Reindent entire file and return to position
+        [4] = [[%s/\t/  /g]],                     -- Convert tabs to 2 spaces
+
+        -- Line Operations
+        [5] = [[%!sort]],                         -- Sort all lines alphabetically
+        [6] = [[%!sort | uniq]],                  -- Sort and remove duplicate lines
+        [7] = [[g/^/m0]],                         -- Reverse line order
+
+        -- Code Helpers
+        [8] = [[%s/\([^;]\)$/\1;/]],             -- Add semicolons to end of lines
+        [9] = [[%s/;\s*$/]],                      -- Remove semicolons from end of lines
+
+        -- Quick File Operations
+        [10] = [[wqa]],                           -- Write all buffers and quit
       },
       auto_save = true,
     })
@@ -156,22 +169,46 @@ Macros use Lua long string brackets `[[...]]` to safely contain special characte
 
 ```lua
 macros = {
-  -- Normal mode sequence
-  [1] = [[ddONew line here<Esc>]],
+  -- Ex commands (most common)
+  [1] = [[%s/old/new/g]],          -- Find and replace
+  [2] = [[g/pattern/d]],            -- Delete lines matching pattern
+  [3] = [[%!sort]],                 -- Filter through external command
 
-  -- Ex command (find/replace)
-  [2] = [[%s/old/new/g]],
+  -- Normal mode sequences
+  [4] = [[gg=G]],                   -- Reindent entire file
+  [5] = [[ddONew line<Esc>]],      -- Delete line, open below, insert text
 
-  -- Delete empty lines
-  [3] = [[g/^\s*$/d]],
+  -- Insert mode operations
+  [6] = [[iYour text<Esc>]],       -- Enter insert, type text, exit
 
-  -- Insert text
-  [4] = [[iYour text<Esc>]],
+  -- Shell commands
+  [7] = [[!prettier --write %]],   -- Run external command on file
 
-  -- Multiple commands
-  [5] = [[gg=G:w<CR>]],
+  -- Visual operations
+  [8] = [[ggVG"+y]],               -- Select all and copy to clipboard
+
+  -- Complex multi-step
+  [9] = [[gg=G:w<CR>]],            -- Reindent and save
 }
 ```
+
+### Quick Reference
+
+**Ex commands** (start with `:` when executed):
+- `%s/old/new/g` - Replace in entire file
+- `g/pattern/d` - Delete matching lines
+- `%!command` - Filter file through shell command
+
+**Normal mode** (vim motions):
+- `gg` - Go to top
+- `G` - Go to bottom
+- `dd` - Delete line
+- `yy` - Yank (copy) line
+
+**Special characters**:
+- `<Esc>` - Escape key
+- `<CR>` - Enter/Return
+- `<Tab>` - Tab key
 
 ## API Reference
 
@@ -213,31 +250,69 @@ To find your data directory:
 - Linux: `~/.local/share/nvim/`
 - macOS: `~/.local/share/nvim/`
 
-## Example Macros
+## Example Macros - 10 Essential Defaults
+
+Here are 10 practical macros that cover common text editing tasks:
 
 ```lua
 require("macrovault").setup({
   macros = {
-    -- Text cleanup
-    [1] = [[%s/\s\+$//]],              -- Remove trailing whitespace
-    [2] = [[%s/\r//g]],                 -- Remove Windows line endings
-    [3] = [[gg=G``]],                   -- Reindent file
+    -- Text Cleanup & Formatting
+    [1] = [[%s/\s\+$//]],                     -- Remove trailing whitespace
+    [2] = [[g/^\s*$/d]],                      -- Delete empty/whitespace-only lines
+    [3] = [[gg=G``]],                         -- Reindent entire file and return to position
+    [4] = [[%s/\t/  /g]],                     -- Convert tabs to 2 spaces
 
-    -- Navigation
-    [10] = [[ggVG]],                    -- Select all
-    [11] = [[gg]],                      -- Jump to top
-    [12] = [[G]],                       -- Jump to bottom
+    -- Line Operations
+    [5] = [[%!sort]],                         -- Sort all lines alphabetically
+    [6] = [[%!sort | uniq]],                  -- Sort and remove duplicate lines
+    [7] = [[g/^/m0]],                         -- Reverse line order
 
-    -- File operations
-    [20] = [[wa]],                      -- Write all
-    [21] = [[wqa]],                     -- Write and quit all
-    [22] = [[qa!]],                     -- Quit all without saving
+    -- Code Helpers
+    [8] = [[%s/\([^;]\)$/\1;/]],             -- Add semicolons to end of lines (missing them)
+    [9] = [[%s/;\s*$/]],                      -- Remove semicolons from end of lines
 
-    -- Custom commands
-    [50] = [[!pandoc % -o %:r.pdf]],   -- Markdown to PDF
-    [51] = [[!prettier --write %]],     -- Format with Prettier
+    -- Quick File Operations
+    [10] = [[wqa]],                           -- Write all buffers and quit
   },
 })
+```
+
+### Additional Useful Macros
+
+```lua
+-- More examples you can add:
+macros = {
+  -- Text transformations
+  [11] = [[gUU]],                            -- Uppercase current line
+  [12] = [[guu]],                            -- Lowercase current line
+  [13] = [[%s/\r//g]],                       -- Remove Windows line endings (^M)
+  [14] = [[:%j]],                            -- Join all lines into one
+
+  -- Search and replace templates
+  [20] = [[%s///gc]],                        -- Find and replace with confirmation
+  [21] = [[%s/\<\>//g]],                     -- Replace whole words only
+
+  -- Common edits
+  [30] = [[ggVG"+y]],                        -- Copy entire file to clipboard
+  [31] = [[ggdG]],                           -- Delete all lines
+  [32] = [[:%s/\v\s+$//]],                   -- Remove trailing spaces (very magic mode)
+
+  -- File type specific
+  [40] = [[%!python -m json.tool]],          -- Format JSON
+  [41] = [[%!xmllint --format -]],           -- Format XML
+  [42] = [[!prettier --write %]],            -- Format with Prettier (JS/TS/CSS)
+  [43] = [[!black %]],                       -- Format Python with Black
+  [44] = [[!rustfmt %]],                     -- Format Rust with rustfmt
+
+  -- Git operations (requires vim-fugitive or similar)
+  [50] = [[!git add %]],                     -- Stage current file
+  [51] = [[!git diff %]],                    -- Show diff of current file
+
+  -- External tools
+  [60] = [[!pandoc % -o %:r.pdf]],          -- Markdown to PDF
+  [61] = [[!typos %]],                       -- Check for typos
+}
 ```
 
 ## Contributing
