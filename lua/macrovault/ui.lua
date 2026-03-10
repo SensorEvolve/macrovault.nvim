@@ -123,8 +123,8 @@ function M.show()
   -- Create buffer
   state.buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
-  vim.api.nvim_buf_set_option(state.buf, "modifiable", false)
-  vim.api.nvim_buf_set_option(state.buf, "bufhidden", "wipe")
+  vim.api.nvim_set_option_value("modifiable", false, { buf = state.buf })
+  vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = state.buf })
 
   -- Create floating window
   local win_config = {
