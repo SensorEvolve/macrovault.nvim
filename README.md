@@ -1,5 +1,5 @@
 # MacroVault.nvim
-
+<img width="2048" height="2048" alt="MacrovVault" src="https://github.com/user-attachments/assets/72674416-5048-44ef-9088-1d34f1c8d85d" />
 A modern, persistent macro management plugin for Neovim with proper configuration support and disk persistence.
 
 ## Features
